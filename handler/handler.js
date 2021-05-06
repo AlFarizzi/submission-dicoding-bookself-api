@@ -7,7 +7,7 @@ const addBook  = (req, h) => {
         if(!data.name) {
             return h.response({
                 status: "fail",
-                message: "Gagal Menambahkan Buku. Mohon Isi Nama Buku"
+                message: "Gagal menambahkan buku. Mohon isi nama buku"
             }).code(400)  
         } else if(data.readPage > data.pageCount) {
             return h.response({
@@ -23,7 +23,7 @@ const addBook  = (req, h) => {
             }            
             books.push(data);
             return h.response({
-                status: "Success",
+                status: "success",
                 message: "Buku berhasil ditambahkan",
                 data: {
                     bookId: data.id
@@ -33,16 +33,25 @@ const addBook  = (req, h) => {
     } catch (error) {
         return h.response({
             status: "error",
-            message: "Buku Gagal Ditambahkan"
+            message: "Buku gagal ditambahkan"
         }).code(500)                
     }
 } 
 
 const getBook = (req,h) => {
+    let bookData = [];
+    books.forEach(book => {
+        bookData.push({
+            id: book.id,
+            name: book.name,
+            publisher: book.publisher
+        });
+    })
+    
     let data = {
-        status: "Success",
+        status: "success",
         data: {
-            books:books
+            books:bookData
         }
     }
     return h.response(data).code(200);
@@ -51,7 +60,27 @@ const getBook = (req,h) => {
 const bookDetail = (req, h) => {
     const {bookId} = req.params;
     const detail = books.find(book => book.id === bookId);
-    return detail ? h.response(detail).code(200) : h.response({status: "fail", message: "Buku Tidak Ditemukan"}).code(404);
+    return detail 
+    ? h.response({
+        status: "success",
+        data: {
+            book: {
+                id: detail.id,
+                name: detail.name,
+                year: detail.year,
+                author: detail.author,
+                summary: detail.summary,
+                publisher: detail.publisher,
+                pageCount: detail.pageCount,
+                readPage: detail.readPage,
+                finished: detail.finished,
+                reading: detail.reading,
+                insertedAt: detail.insertedAt,
+                updatedAt: detail.updatedAt
+            }
+        }
+    }).code(200) 
+    : h.response({status: "fail", message: "Buku Tidak Ditemukan"}).code(404);
 }
 
 const editBook = (req, h) => {
@@ -61,12 +90,12 @@ const editBook = (req, h) => {
     if(input === null || !input.name) {
         return h.response({
             status: "fail",
-            message: "Gagal Memperbarui Buku. Mohon Isi Nama Buku"
+            message: "Gagal memperbarui buku. Mohon isi nama buku"
         }).code(400) 
     } else if(input.readPage > input.pageCount) {
         return h.response({
             status: "fail",
-            message: "Gagal Memperbarui buku. readPage tidak boleh lebih besar dari pageCount"
+            message: "Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount"
         }).code(400)  
     } else if(!edited) {
         return h.response({
@@ -85,8 +114,8 @@ const editBook = (req, h) => {
     edited.finisher = input.finished ? input.finished : edited.finished;
     edited.updatedAt = new Date().toISOString();
     return h.response({
-        status: "Success",
-        message: "Buku Berhasil Diperbarui"
+        status: "success",
+        message: "Buku berhasil diperbarui"
     }).code(200);
 }
 
@@ -95,8 +124,14 @@ const deleteBook = (req, h) => {
     let find = books.find(book => book.id === bookId);
     books = books.filter(book => book.id !== bookId)
     return find
-    ? h.response({status: "Success", message: "Buku berhasil dihapus"}).code(200) 
-    : h.response({status: "fail", message: "Buku Gagal Dihapus, Id Tidak Ditemukan"}).code(404); 
+    ? h.response({
+        status: "success",
+        message: "Buku berhasil dihapus"
+    }).code(200) 
+    : h.response({
+        status: "fail",
+        message: "Buku gagal dihapus. Id tidak ditemukan"
+    }).code(404); 
 }
 
 module.exports = {
